@@ -13,10 +13,9 @@
 				<artifactId>exec-maven-plugin</artifactId>
 				<version>3.1.0</version>
 				<configuration>
-					<mainClass>craftinginterpreters.lox.Lox</mainClass>
+					<!-- <mainClass>craftinginterpreters.lox.Lox</mainClass>
 					<arguments>
-						<argument></argument>
-					</arguments>
+					</arguments> -->
 				</configuration>
 			</plugin>
 
