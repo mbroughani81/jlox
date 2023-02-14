@@ -16,7 +16,6 @@ public class Scanner {
 
     private static final Map<String, TokenType> keywords;
     static {
-        // keywords = new HashMap<String, TokenType>();
         keywords = new HashMap();
         keywords.put("and", AND);
         keywords.put("class", CLASS);
@@ -76,7 +75,6 @@ public class Scanner {
                 break;
             case '/':
                 if (match('/')) {
-                  // A comment goes until the end of the line.
                   while (peek() != '\n' && !isAtEnd()) advance();
                 } else {
                   addToken(SLASH);
@@ -85,7 +83,6 @@ public class Scanner {
             case ' ':
             case '\r':
             case '\t':
-                // Ignore whitespace.
                 break;
             case '\n':
                 line++;
@@ -115,9 +112,7 @@ public class Scanner {
     private void number() {
         while (isDigit(peek())) advance();
     
-        // Look for a fractional part.
         if (peek() == '.' && isDigit(peekNext())) {
-          // Consume the "."
           advance();
     
           while (isDigit(peek())) advance();
@@ -138,10 +133,8 @@ public class Scanner {
           return;
         }
     
-        // The closing ".
         advance();
     
-        // Trim the surrounding quotes.
         String value = source.substring(start + 1, current - 1);
         addToken(STRING, value);
     }
