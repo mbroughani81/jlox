@@ -1,5 +1,6 @@
 package craftinginterpreters.lox;
 
+import craftinginterpreters.lox.Expr.Assign;
 import craftinginterpreters.lox.Expr.Binary;
 import craftinginterpreters.lox.Expr.Grouping;
 import craftinginterpreters.lox.Expr.Literal;
@@ -11,6 +12,11 @@ public class AstPrinter implements Expr.Visitor<String> {
     String print(Expr expr) {
         return expr.accept(this);
     }
+
+    public String visitAssignExpr(Assign expr) {
+        return parenthesize("set " + expr.name.lexeme, expr.value);
+    }
+
     public String visitBinaryExpr(Binary expr) {
         return parenthesize(expr.operator.lexeme, expr.left, expr.right);
     }

@@ -2,6 +2,7 @@ package craftinginterpreters.lox;
 
 import java.util.List;
 
+import craftinginterpreters.lox.Expr.Assign;
 import craftinginterpreters.lox.Expr.Binary;
 import craftinginterpreters.lox.Expr.Grouping;
 import craftinginterpreters.lox.Expr.Literal;
@@ -23,6 +24,12 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         } catch (RuntimeError error) {
             Lox.runtimeError(error);
         }
+    }
+
+    public Object visitAssignExpr(Assign expr) {
+        Object value = evaluate(expr.value);
+        environment.assign(expr.name, value);
+        return value;
     }
     
     public Object visitBinaryExpr(Binary expr) {
