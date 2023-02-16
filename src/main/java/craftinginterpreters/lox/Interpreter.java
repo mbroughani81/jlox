@@ -6,10 +6,14 @@ import craftinginterpreters.lox.Expr.Binary;
 import craftinginterpreters.lox.Expr.Grouping;
 import craftinginterpreters.lox.Expr.Literal;
 import craftinginterpreters.lox.Expr.Unary;
+import craftinginterpreters.lox.Expr.Variable;
 import craftinginterpreters.lox.Stmt.Expression;
 import craftinginterpreters.lox.Stmt.Print;
+import craftinginterpreters.lox.Stmt.Var;
 
 class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
+
+    private Environment environment = new Environment();
 
     void interpret(List<Stmt> statements) { 
         try {
@@ -84,6 +88,10 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
         return null;
     }
+
+    public Object visitVariableExpr(Variable expr) {
+        return environment.get(expr.name);
+    }
     
     private void checkNumberOperand(Token operator, Object operand) {
         if (operand instanceof Double) return;
@@ -140,6 +148,16 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     public Void visitPrintStmt(Print stmt) {
         Object value = evaluate(stmt.expression);
         System.out.println(stringify(value));
+        return null;
+    }
+
+    public Void visitVarStmt(Var stmt) {
+        Object value = null;
+        if (stmt.initializer != null) {
+            value = evaluate(stmt.initializer);
+        }
+
+        environment.define(stmt.name.lexeme, value);
         return null;
     }
 }

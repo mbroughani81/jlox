@@ -4,6 +4,7 @@ import craftinginterpreters.lox.Expr.Binary;
 import craftinginterpreters.lox.Expr.Grouping;
 import craftinginterpreters.lox.Expr.Literal;
 import craftinginterpreters.lox.Expr.Unary;
+import craftinginterpreters.lox.Expr.Variable;
 
 public class AstPrinter implements Expr.Visitor<String> {
 
@@ -25,6 +26,10 @@ public class AstPrinter implements Expr.Visitor<String> {
 
     public String visitUnaryExpr(Unary expr) {
         return parenthesize(expr.operator.lexeme, expr.right);
+    }
+
+    public String visitVariableExpr(Variable expr) {
+        return expr.name.lexeme;
     }
 
     private String parenthesize(String name, Expr... exprs) {
