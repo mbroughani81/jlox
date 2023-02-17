@@ -14,6 +14,7 @@ import craftinginterpreters.lox.Stmt.Expression;
 import craftinginterpreters.lox.Stmt.If;
 import craftinginterpreters.lox.Stmt.Print;
 import craftinginterpreters.lox.Stmt.Var;
+import craftinginterpreters.lox.Stmt.While;
 
 class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
@@ -177,8 +178,6 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         }
     }
 
-    
-
     public Void visitIfStmt(If stmt) {
         if (isTruthy(evaluate(stmt.condition))) {
             execute(stmt.thenBranch);
@@ -196,6 +195,13 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     public Void visitPrintStmt(Print stmt) {
         Object value = evaluate(stmt.expression);
         System.out.println(stringify(value));
+        return null;
+    }
+
+    public Void visitWhileStmt(While stmt) {
+        while (isTruthy(evaluate(stmt.condition))) {
+            execute(stmt.body);
+        }
         return null;
     }
 
