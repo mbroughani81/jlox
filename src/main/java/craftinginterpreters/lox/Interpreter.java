@@ -6,10 +6,12 @@ import craftinginterpreters.lox.Expr.Assign;
 import craftinginterpreters.lox.Expr.Binary;
 import craftinginterpreters.lox.Expr.Grouping;
 import craftinginterpreters.lox.Expr.Literal;
+import craftinginterpreters.lox.Expr.Logical;
 import craftinginterpreters.lox.Expr.Unary;
 import craftinginterpreters.lox.Expr.Variable;
 import craftinginterpreters.lox.Stmt.Block;
 import craftinginterpreters.lox.Stmt.Expression;
+import craftinginterpreters.lox.Stmt.If;
 import craftinginterpreters.lox.Stmt.Print;
 import craftinginterpreters.lox.Stmt.Var;
 
@@ -33,6 +35,20 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return value;
     }
     
+
+    
+    public Object visitLogicalExpr(Logical expr) {
+        Object left = evaluate(expr.left);
+
+        if (expr.operator.type == TokenType.OR) {
+            if (isTruthy(left)) return left;
+        } else {
+            if (!isTruthy(left)) return left;
+        }
+
+        return evaluate(expr.right);
+    }
+
     public Object visitBinaryExpr(Binary expr) {
         Object left = evaluate(expr.left);
         Object right = evaluate(expr.right);
@@ -159,6 +175,17 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         } finally {
             this.environment = previous;
         }
+    }
+
+    
+
+    public Void visitIfStmt(If stmt) {
+        if (isTruthy(evaluate(stmt.condition))) {
+            execute(stmt.thenBranch);
+        } else if (stmt.elseBranch != null) {
+            execute(stmt.elseBranch);
+        }
+        return null;
     }
 
     public Void visitExpressionStmt(Expression stmt) {
