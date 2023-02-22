@@ -2,8 +2,10 @@ package craftinginterpreters.lox;
 
 import craftinginterpreters.lox.Expr.Assign;
 import craftinginterpreters.lox.Expr.Binary;
+import craftinginterpreters.lox.Expr.Call;
 import craftinginterpreters.lox.Expr.Grouping;
 import craftinginterpreters.lox.Expr.Literal;
+import craftinginterpreters.lox.Expr.Logical;
 import craftinginterpreters.lox.Expr.Unary;
 import craftinginterpreters.lox.Expr.Variable;
 
@@ -12,6 +14,22 @@ public class AstPrinter implements Expr.Visitor<String> {
     String print(Expr expr) {
         return expr.accept(this);
     }
+
+    
+
+    public String visitCallExpr(Call expr) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
+
+    public String visitLogicalExpr(Logical expr) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
 
     public String visitAssignExpr(Assign expr) {
         return parenthesize("set " + expr.name.lexeme, expr.value);
