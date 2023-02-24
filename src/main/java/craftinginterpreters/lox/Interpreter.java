@@ -16,6 +16,7 @@ import craftinginterpreters.lox.Stmt.Expression;
 import craftinginterpreters.lox.Stmt.Function;
 import craftinginterpreters.lox.Stmt.If;
 import craftinginterpreters.lox.Stmt.Print;
+import craftinginterpreters.lox.Stmt.Return;
 import craftinginterpreters.lox.Stmt.Var;
 import craftinginterpreters.lox.Stmt.While;
 
@@ -235,6 +236,15 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         Object value = evaluate(stmt.expression);
         System.out.println(stringify(value));
         return null;
+    }
+
+    
+
+    public Void visitReturnStmt(Return stmt) {
+        Object value = null;
+        if (stmt.value != null) value = evaluate(stmt.value);
+
+        throw new craftinginterpreters.lox.Return(value);
     }
 
     public Void visitWhileStmt(While stmt) {
