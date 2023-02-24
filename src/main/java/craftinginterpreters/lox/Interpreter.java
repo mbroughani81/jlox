@@ -13,6 +13,7 @@ import craftinginterpreters.lox.Expr.Unary;
 import craftinginterpreters.lox.Expr.Variable;
 import craftinginterpreters.lox.Stmt.Block;
 import craftinginterpreters.lox.Stmt.Expression;
+import craftinginterpreters.lox.Stmt.Function;
 import craftinginterpreters.lox.Stmt.If;
 import craftinginterpreters.lox.Stmt.Print;
 import craftinginterpreters.lox.Stmt.Var;
@@ -20,10 +21,8 @@ import craftinginterpreters.lox.Stmt.While;
 
 class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
-    private Environment globals = new Environment();
+    Environment globals = new Environment();
     private Environment environment = globals;
-
-    
 
     public Interpreter() {
         globals.define("clock", new LoxCallable() {
@@ -45,13 +44,16 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         }
     }
 
+    // eval expression 
+    private Object evaluate(Expr expr) {
+        return expr.accept(this);
+    }
+
     public Object visitAssignExpr(Assign expr) {
         Object value = evaluate(expr.value);
         environment.assign(expr.name, value);
         return value;
     }
-    
-
     
     public Object visitLogicalExpr(Logical expr) {
         Object left = evaluate(expr.left);
@@ -106,8 +108,6 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
         return null;
     }
-
-    
 
     public Object visitCallExpr(Call expr) {
         Object callee = evaluate(expr.callee);
@@ -166,7 +166,6 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         throw new RuntimeError(operator, "Operands must be numbers.");
     }
 
-
     private boolean isTruthy(Object object) {
         if (object == null) return false;
         if (object instanceof Boolean) return (Boolean)object;
@@ -194,15 +193,12 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return object.toString();
     }
 
-    private Object evaluate(Expr expr) {
-        return expr.accept(this);
-    }
-
+    // execute statements
     private void execute(Stmt stmt) {
         stmt.accept(this);
     }
 
-    private void executeBlock(List<Stmt> statements, Environment environment) {
+    void executeBlock(List<Stmt> statements, Environment environment) {
         Environment previous = this.environment;
         try {
             this.environment = environment;
@@ -226,6 +222,12 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     public Void visitExpressionStmt(Expression stmt) {
         evaluate(stmt.expression);
+        return null;
+    }
+
+    public Void visitFunctionStmt(Function stmt) {
+        LoxFunction function = new LoxFunction(stmt);
+        environment.define(stmt.name.lexeme, function);
         return null;
     }
 

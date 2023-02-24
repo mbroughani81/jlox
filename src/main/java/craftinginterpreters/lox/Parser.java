@@ -27,6 +27,7 @@ class Parser {
 
     private Stmt declaration() {
         try {
+            if (match(FUN)) return function("function");
             if (match(VAR)) return varDeclaration();
 
             return statement();
@@ -149,6 +150,27 @@ class Parser {
         consume(SEMICOLON, "Expect ';' after variable declaration.");
         return new Stmt.Var(name, initializer);
     }
+
+    private Stmt.Function function(String kind) {
+        Token name = consume(IDENTIFIER, "Expect " + kind + " name.");
+        consume(LEFT_PAREN, "Expect '(' after " + kind + " name.");
+        List<Token> parameters = new ArrayList();
+        if (!check(RIGHT_PAREN)) {
+            do {
+                if (parameters.size() >= 255) {
+                  error(peek(), "Can't have more than 255 parameters.");
+                }
+        
+                parameters.add(
+                    consume(IDENTIFIER, "Expect parameter name."));
+            } while (match(COMMA));
+        }
+        consume(RIGHT_PAREN, "Expect ')' after parameters.");
+
+        consume(LEFT_BRACE, "Expect '{' before " + kind + " body.");
+        List<Stmt> body = block();
+        return new Stmt.Function(name, parameters, body);
+    }
     
     private Expr expression() {
         return assignment();
@@ -253,8 +275,19 @@ class Parser {
         return call();
     }
 
-    // helper function to consume
-    // start
+    private Expr call() {
+        Expr expr = primary();
+        while (true) {
+            if (match(LEFT_PAREN)) {
+                expr = finishCall(expr);
+            } else {
+                break;
+            }
+        }
+
+        return expr;
+    }
+
     private Expr finishCall(Expr callee) {
         List<Expr> arguments = new ArrayList<Expr>();
         if (!check(RIGHT_PAREN)) {
@@ -269,20 +302,6 @@ class Parser {
         Token paren = consume(RIGHT_PAREN, "Expect ')' after arguments.");
 
         return new Expr.Call(callee, paren, arguments);
-    }
-    // end
-
-    private Expr call() {
-        Expr expr = primary();
-        while (true) {
-            if (match(LEFT_PAREN)) {
-                expr = finishCall(expr);
-            } else {
-                break;
-            }
-        }
-
-        return expr;
     }
 
     private Expr primary() {
