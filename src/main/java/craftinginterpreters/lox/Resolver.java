@@ -8,12 +8,14 @@ import java.util.Stack;
 import craftinginterpreters.lox.Expr.Assign;
 import craftinginterpreters.lox.Expr.Binary;
 import craftinginterpreters.lox.Expr.Call;
+import craftinginterpreters.lox.Expr.Get;
 import craftinginterpreters.lox.Expr.Grouping;
 import craftinginterpreters.lox.Expr.Literal;
 import craftinginterpreters.lox.Expr.Logical;
 import craftinginterpreters.lox.Expr.Unary;
 import craftinginterpreters.lox.Expr.Variable;
 import craftinginterpreters.lox.Stmt.Block;
+import craftinginterpreters.lox.Stmt.Class;
 import craftinginterpreters.lox.Stmt.Expression;
 import craftinginterpreters.lox.Stmt.Function;
 import craftinginterpreters.lox.Stmt.If;
@@ -34,8 +36,17 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     private enum FunctionType {
         NONE,
-        FUNCTION
-    }    
+        FUNCTION,
+        INITIALIZER,
+        METHOD
+    }
+
+    private enum ClassType {
+        NONE,
+        CLASS
+    }
+    
+    private ClassType currentClass = ClassType.NONE;
 
     public Void visitAssignExpr(Assign expr) {
         resolve(expr.value);
@@ -59,6 +70,12 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         return null;
     }
 
+    public Void visitGetExpr(Get expr) {
+      resolve(expr.object);
+      return null;
+    }
+  
+
     public Void visitGroupingExpr(Grouping expr) {
         resolve(expr.expression);
         return null;
@@ -74,6 +91,22 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         return null;
     }
 
+    public Void visitSetExpr(Expr.Set expr) {
+        resolve(expr.value);
+        resolve(expr.object);
+        return null;
+    }
+
+    public Void visitThisExpr(Expr.This expr) {
+        resolveLocal(expr, expr.keyword);
+        if (currentClass == ClassType.NONE) {
+            Lox.error(expr.keyword,
+                "Can't use 'this' outside of a class.");
+            return null;
+        }
+        return null;
+    }
+        
     public Void visitUnaryExpr(Unary expr) {
         resolve(expr.right);
         return null;
@@ -104,6 +137,30 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         endScope();
         return null;
     }
+
+    public Void visitClassStmt(Stmt.Class stmt) {
+        ClassType enclosingClass = currentClass;
+        currentClass = ClassType.CLASS;
+
+        declare(stmt.name);
+        define(stmt.name);
+
+        beginScope();
+        scopes.peek().put("this", true);
+
+        for (Stmt.Function method : stmt.methods) {
+            FunctionType declaration = FunctionType.METHOD;
+            if (method.name.lexeme.equals("init")) {
+                declaration = FunctionType.INITIALIZER;
+            }
+            resolveFunction(method, declaration); 
+        }
+
+        endScope();
+        currentClass = enclosingClass;
+        return null;
+    }
+    
 
     public Void visitExpressionStmt(Expression stmt) {
         resolve(stmt.expression);
@@ -151,6 +208,11 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         }
         
         if (stmt.value != null) {
+            if (currentFunction == FunctionType.INITIALIZER) {
+                Lox.error(stmt.keyword,
+                    "Can't return a value from an initializer.");
+            }
+
             resolve(stmt.value);
         }
 
